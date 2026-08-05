@@ -1,0 +1,130 @@
+.ticks,
+.ticks::before,
+.ticks::after,
+#docs,
+#next-steps,
+#spacer {
+  border: none !important;
+  outline: none !important;
+}
+
+.app-container, #root, body {
+  border: none !important;
+  box-shadow: none !important;
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg-guinda: #691c32;
+  --btn-hover: #4d1424;
+  --card-bg: #ffffff;
+  --border-light: rgba(0, 0, 0, 0.1);
+  --text-primary: #2b2b2b;
+}
+
+html, body, #root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+#root {
+  max-width: 100% !important;
+  text-align: left !important;
+}
+
+body {
+  background-image: url('/images/textura-roja.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  background-attachment: fixed;
+  background-color: var(--bg-guinda);
+}
+
+.app-container {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+.card-custom {
+  position: relative;
+  width: 100%;
+  max-width: 1100px;
+  padding: 40px;
+  background: var(--card-bg) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3) !important;
+  border: none !important;
+  color: var(--text-primary);
+}
+
+.card-custom::before {
+  content: '';
+  position: absolute;
+  inset: 0; 
+  border-radius: 16px;
+  background-image: url('/images/textura-roja2.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+.card-custom > * {
+  position: relative;
+  z-index: 1;
+}
+
+.card-custom .border-top,
+.card-custom .border-bottom {
+  border-color: var(--border-light) !important;
+}
+
+.card-custom label {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.card-custom .form-control, 
+.card-custom .form-select {
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+}
+
+.btn-gradient-primary, 
+.btn-enviar {
+  background: linear-gradient(135deg, #691c32 0%, #982244 100%);
+  color: #ffffff !important;
+  border: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-gradient-primary:hover, 
+.btn-enviar:hover {
+  background: linear-gradient(135deg, #4d1424 0%, #691c32 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 1024px) {
+  .app-container {
+    padding: 24px 15px;
+  }
+
+  .card-custom {
+    padding: 24px 20px;
+    border-radius: 12px !important;
+  }
+}

@@ -1,0 +1,10 @@
+services:
+  react-app:
+    build: .
+    container_name: convocatorias_frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+    environment:
+      - CHOKIDAR_USEPOLLING=true
