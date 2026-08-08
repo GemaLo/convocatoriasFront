@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_ENDPOINTS } from '../config/api';
 
 export interface MenorData {
     id: string;
@@ -136,7 +137,7 @@ export const useRegisterForm = () => {
         setWarning(null);
 
         try {
-            const response = await fetch(`http://localhost:9000/api/candidato?numero_empleado=${formData.numeroEmpleado}`);
+            const response = await fetch(`${API_ENDPOINTS.MAIN}/candidato?numero_empleado=${formData.numeroEmpleado}`);
             const result = await response.json();
 
             if (response.ok && result.success) {
@@ -211,7 +212,7 @@ export const useRegisterForm = () => {
         });
 
         try {
-            const response = await fetch('http://localhost:9000/api/candidato', {
+            const response = await fetch(`${API_ENDPOINTS.MAIN}/candidato`, {
                 method: 'POST',
                 body: payload,
             });

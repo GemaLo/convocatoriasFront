@@ -58,6 +58,7 @@ export const Register: React.FC = () => {
             <p className="card-inside-title mb-4">
                 Para mostrar la información solicitada, llene el campo de número de empleado y haga clic en el botón de consultar.
                 Los archivos PDF que se suban al sistema no deben exceder los 2MB de tamaño.
+                En caso de que el archivo sea más grande, favor de reducir su tamaño antes de subirlo.
             </p>
 
             <form onSubmit={handleSubmit}>
