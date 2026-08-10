@@ -9,6 +9,17 @@ export interface MenorData {
     fileActa: File | null;
 }
 
+const generateUUID = (): string => {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID();
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = (Math.random() * 16) | 0;
+        const v = c === 'x' ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+    });
+};
+
 export const useRegisterForm = () => {
     const EDAD_MAXIMA_PERMITIDA = 18;
 
@@ -28,7 +39,7 @@ export const useRegisterForm = () => {
     });
 
     const [menores, setMenores] = useState<MenorData[]>([
-        { id: crypto.randomUUID(), curpMenor: '', edad: '', fileCurp: null, fileActa: null }
+        { id: generateUUID(), curpMenor: '', edad: '', fileCurp: null, fileActa: null }
     ]);
 
     const [isFetched, setIsFetched] = useState(false);
@@ -84,7 +95,7 @@ export const useRegisterForm = () => {
     const agregarMenor = () => {
         setMenores(prev => [
             ...prev,
-            { id: crypto.randomUUID(), curpMenor: '', edad: '', fileCurp: null, fileActa: null }
+            { id: generateUUID(), curpMenor: '', edad: '', fileCurp: null, fileActa: null }
         ]);
     };
 
