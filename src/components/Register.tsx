@@ -45,6 +45,7 @@ export const Register: React.FC = () => {
     }
 
     return (
+    <div className="app-container">
         <div className="card-custom">
             <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
                 <div>
@@ -312,6 +313,7 @@ export const Register: React.FC = () => {
                     )}
                 </div>
             </form>
+        </div>
         </div>
     );
 };
