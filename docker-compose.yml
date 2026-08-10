@@ -3,7 +3,7 @@ services:
     build: .
     container_name: convocatorias_frontend
     ports:
-      - "6060:6060"
+      - "5173:5173"
     volumes:
       - .:/app
     environment:

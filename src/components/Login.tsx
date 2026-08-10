@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { API_ENDPOINTS } from '../config/api';
 import styles from './Login.module.css';
 
 import SSPCLogo from '../images/SSPC.png';
@@ -15,13 +17,15 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const navigate = useNavigate();
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
 
         try {
-            const response = await fetch('http://localhost:9000/api/login', {
+            const response = await fetch(`${API_ENDPOINTS.MAIN}/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -43,14 +47,15 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                 localStorage.setItem('auth_token', data.access_token);
             }
 
-            const userData = data.data?.user || data.user;
-            if (userData) {
-                localStorage.setItem('user_info', JSON.stringify(userData));
+            if (data.user) {
+                localStorage.setItem('user_info', JSON.stringify(data.user));
             }
 
             if (onLoginSuccess) {
                 onLoginSuccess();
             }
+
+            navigate('/dashboard');
 
         } catch (err: any) {
             setError(err.message || 'Error de conexión con el servidor.');
