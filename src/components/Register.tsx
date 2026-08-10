@@ -23,6 +23,8 @@ export const Register: React.FC = () => {
 
     if (constanciaData) {
         return (
+    <div className="app-container">
+
             <div className="card-custom p-4 border rounded shadow-sm text-center">
                 <h3 className="text-success mb-3">¡Registro Completado con Éxito!</h3>
                 <p className="lead">Constancia de Recepción de Documentos</p>
@@ -40,6 +42,7 @@ export const Register: React.FC = () => {
                         Realizar otro registro
                     </button>
                 </div>
+            </div>
             </div>
         );
     }
