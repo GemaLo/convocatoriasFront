@@ -9,7 +9,7 @@
 
 .sidebar {
     width: 280px;
-    background-color: #691c32; /* Tono Guinda Institucional */
+    background-color: #691c32; 
     color: #ffffff;
     display: flex;
     flex-direction: column;
@@ -199,7 +199,19 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     border: 1px solid #e5e7eb;
 }
+.card h2 {
+    color: #111827; 
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+}
 
+.card p {
+    color: #4b5563; 
+    font-size: 0.95rem;
+    margin: 0;
+}
 .cardHeaderFlex {
     display: flex;
     justify-content: space-between;

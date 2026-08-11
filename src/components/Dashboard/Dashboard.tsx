@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import styles from './Dashboard.module.css';
+import { Calls } from "../Calls";
 
 interface TypeUser {
     idType: number;
@@ -179,12 +180,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                         </div>
                     )}
 
-                    {activeSection === 'convocatorias' && (
-                        <div className={styles.card}>
-                            <h2>Alta de Convocatorias</h2>
-                            <p>Módulo para crear, configurar y publicar nuevas convocatorias de prestaciones.</p>
-                        </div>
-                    )}
+
+{activeSection === 'convocatorias' && (
+    <div className={styles.card}>
+        <Calls />
+    </div>
+)}
                 </section>
             </main>
         </div>
