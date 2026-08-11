@@ -221,7 +221,7 @@
 
 .inputLight:focus {
     background-color: rgba(255, 255, 255, 0.18);
-    border-color: #bc955c; /* Borde dorado al hacer foco */
+    border-color: #bc955c;
 }
 
 .inputLight option {
@@ -272,4 +272,39 @@
 
 .btnGold:hover {
     background-color: #a37f48;
+}
+
+.tableWrapper {
+    width: 100%;
+    overflow-x: auto; 
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.dataTable {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 650px; 
+    font-size: 0.9rem;
+}
+
+.dataTable th, 
+.dataTable td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    white-space: nowrap; 
+}
+
+
+@media (max-width: 768px) {
+    .headerFlex {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .btnPrimary {
+        width: 100%;
+    }
 }

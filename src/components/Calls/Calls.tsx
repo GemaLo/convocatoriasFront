@@ -1,65 +1,94 @@
 import React, { useState, useEffect } from 'react';
 import styles from './Calls.module.css';
+import { API_ENDPOINTS } from '../../config/api';
 
-export interface Puesto {
-    id_puesto: number;
-    puesto: string;
-}
-
-export interface Convocatoria {
-    id_convocatoria: number;
-    convocatoria: string;
-    year: number;
-    puesto: string;
-    id_puesto: number;
-    fecha_inicio: string;
-    fecha_final: string;
-    fecha_limite: string;
-    activo: number;
+export interface CallModel {
+    idcall: string | number;
+    yearcall: string | number;
+    namecall: string;
+    dateinitialcall: string;
+    datefinalcall: string;
+    activo: string | number;
 }
 
 export const Calls: React.FC = () => {
-    const [convocatorias, setConvocatorias] = useState<Convocatoria[]>([]);
-    const [puestos, setPuestos] = useState<Puesto[]>([]);
+    const [calls, setCalls] = useState<CallModel[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    
     const [showModal, setShowModal] = useState<boolean>(false);
+    const [editingCall, setEditingCall] = useState<CallModel | null>(null);
     const [message, setMessage] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
-        convocatoria: '',
-        fecha_inicio: '',
-        fecha_final: '',
-        fecha_limite: '',
-        id_puesto: ''
+        namecall: '',
+        dateinitialcall: '',
+        datefinalcall: '',
+        activo: '1'
     });
 
     const todayDate = new Date().toISOString().split('T')[0];
 
-    const fetchConvocatorias = async () => {
+    const formatDate = (dateString?: string): string => {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString;
+
+        return date.toLocaleDateString('es-ES', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+    };
+
+    const fetchCalls = async () => {
         try {
             setLoading(true);
             const token = localStorage.getItem('auth_token');
-            const res = await fetch('http://localhost:9000/api/convocatorias', {
+
+            const res = await fetch(`${API_ENDPOINTS.MAIN}/calls`, {
+                method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
                 }
             });
+
             if (res.ok) {
-                const data = await res.json();
-                setConvocatorias(data.convocatorias || []);
-                setPuestos(data.puestos || []);
+                const response = await res.json();
+                setCalls(response.data || []);
             }
         } catch (error) {
-            console.error('Error al obtener convocatorias:', error);
+            console.error('Error al cargar convocatorias:', error);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchConvocatorias();
+        fetchCalls();
     }, []);
+
+    const handleOpenCreate = () => {
+        setEditingCall(null);
+        setFormData({
+            namecall: '',
+            dateinitialcall: '',
+            datefinalcall: '',
+            activo: '1'
+        });
+        setShowModal(true);
+    };
+
+    const handleOpenEdit = (item: CallModel) => {
+        setEditingCall(item);
+        setFormData({
+            namecall: item.namecall,
+            dateinitialcall: item.dateinitialcall ? item.dateinitialcall.split(' ')[0] : '',
+            datefinalcall: item.datefinalcall ? item.datefinalcall.split(' ')[0] : '',
+            activo: String(item.activo)
+        });
+        setShowModal(true);
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormData({
@@ -72,8 +101,13 @@ export const Calls: React.FC = () => {
         e.preventDefault();
         try {
             const token = localStorage.getItem('auth_token');
-            const res = await fetch('http://localhost:9000/api/guarda-convocatoria', {
-                method: 'POST',
+            const isEdit = !!editingCall;
+            const url = isEdit 
+                ? `${API_ENDPOINTS.MAIN}/calls/${editingCall.idcall}`
+                : `${API_ENDPOINTS.MAIN}/calls`;
+
+            const res = await fetch(url, {
+                method: isEdit ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
@@ -82,22 +116,41 @@ export const Calls: React.FC = () => {
                 body: JSON.stringify(formData)
             });
 
+            const data = await res.json();
+
             if (res.ok) {
-                setMessage('La convocatoria ha sido creada correctamente.');
+                setMessage(isEdit ? 'Convocatoria actualizada correctamente.' : 'Convocatoria registrada con éxito.');
                 setShowModal(false);
-                setFormData({
-                    convocatoria: '',
-                    fecha_inicio: '',
-                    fecha_final: '',
-                    fecha_limite: '',
-                    id_puesto: ''
-                });
-                fetchConvocatorias();
+                fetchCalls();
             } else {
-                alert('Error al guardar la convocatoria. Verifica los campos.');
+                alert(data.message || 'Error al guardar.');
             }
         } catch (error) {
-            console.error('Error al enviar el formulario:', error);
+            console.error('Error:', error);
+        }
+    };
+
+    // Inactivar / Activar directamente desde la tabla
+    const handleToggleStatus = async (id: string | number) => {
+        if (!confirm('¿Deseas cambiar el estatus de esta convocatoria?')) return;
+
+        try {
+            const token = localStorage.getItem('auth_token');
+            const res = await fetch(`${API_ENDPOINTS.MAIN}/calls/${id}/toggle-status`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (res.ok) {
+                fetchCalls();
+            } else {
+                alert('No se pudo cambiar el estatus.');
+            }
+        } catch (error) {
+            console.error('Error al cambiar estatus:', error);
         }
     };
 
@@ -108,10 +161,7 @@ export const Calls: React.FC = () => {
                     <h2 className={styles.title}>Consulta de Convocatorias</h2>
                     <p className={styles.subtitle}>Gestión y registro de convocatorias vigentes</p>
                 </div>
-                <button 
-                    className={styles.btnPrimary} 
-                    onClick={() => setShowModal(true)}
-                >
+                <button className={styles.btnPrimary} onClick={handleOpenCreate}>
                     + Alta de nueva Convocatoria
                 </button>
             </div>
@@ -133,38 +183,41 @@ export const Calls: React.FC = () => {
                                 <th>ID</th>
                                 <th>Convocatoria</th>
                                 <th>Año</th>
-                                <th>Puesto</th>
                                 <th>Fecha Inicio</th>
                                 <th>Fecha Final</th>
-                                <th>Fecha Límite</th>
                                 <th>Estatus</th>
                                 <th>Opciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {convocatorias.length === 0 ? (
+                            {calls.length === 0 ? (
                                 <tr>
-                                    <td colSpan={9} className={styles.emptyRow}>
+                                    <td colSpan={7} className={styles.emptyRow}>
                                         No se encontraron convocatorias registradas.
                                     </td>
                                 </tr>
                             ) : (
-                                convocatorias.map((item) => (
-                                    <tr key={item.id_convocatoria}>
-                                        <td>{item.id_convocatoria}</td>
-                                        <td><strong>{item.convocatoria}</strong></td>
-                                        <td>{item.year}</td>
-                                        <td>{item.puesto}</td>
-                                        <td>{item.fecha_inicio}</td>
-                                        <td>{item.fecha_final}</td>
-                                        <td>{item.fecha_limite}</td>
+                                calls.map((item) => (
+                                    <tr key={item.idcall}>
+                                        <td>{item.idcall}</td>
+                                        <td><strong>{item.namecall}</strong></td>
+                                        <td>{item.yearcall}</td>
+                                        <td>{formatDate(item.dateinitialcall)}</td>
+                                        <td>{formatDate(item.datefinalcall)}</td>
                                         <td>
-                                            <span className={item.activo === 1 ? styles.badgeActive : styles.badgeInactive}>
-                                                {item.activo === 1 ? 'ACTIVA' : 'INACTIVA'}
+                                            <span 
+                                                className={String(item.activo) === '1' ? styles.badgeActive : styles.badgeInactive}
+                                                style={{ cursor: 'pointer' }}
+                                                onClick={() => handleToggleStatus(item.idcall)}
+                                                title="Haz clic para cambiar estatus"
+                                            >
+                                                {String(item.activo) === '1' ? 'ACTIVA' : 'INACTIVA'}
                                             </span>
                                         </td>
                                         <td>
-                                            <button className={styles.btnEdit}>Editar</button>
+                                            <button className={styles.btnEdit} onClick={() => handleOpenEdit(item)}>
+                                                Editar
+                                            </button>
                                         </td>
                                     </tr>
                                 ))
@@ -174,22 +227,21 @@ export const Calls: React.FC = () => {
                 </div>
             )}
 
-            {/* MODAL / ALTA DE CONVOCATORIA CON TEXTURA Y TEXTO CLARO */}
             {showModal && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modalCard}>
                         <div className={styles.modalHeader}>
-                            <h3>Alta de Nueva Convocatoria</h3>
+                            <h3>{editingCall ? 'Editar Convocatoria' : 'Alta de Nueva Convocatoria'}</h3>
                             <button className={styles.closeModalBtn} onClick={() => setShowModal(false)}>✕</button>
                         </div>
                         <form onSubmit={handleSubmit} className={styles.modalBody}>
                             <div className={styles.formGroup}>
-                                <label className={styles.labelLight}>Nombre de la convocatoria:</label>
+                                <label className={styles.labelLight}>Nombre de la Convocatoria:</label>
                                 <input 
                                     type="text" 
-                                    name="convocatoria" 
+                                    name="namecall" 
                                     className={styles.inputLight}
-                                    value={formData.convocatoria} 
+                                    value={formData.namecall} 
                                     onChange={handleChange} 
                                     required 
                                 />
@@ -200,10 +252,9 @@ export const Calls: React.FC = () => {
                                     <label className={styles.labelLight}>Fecha Inicio:</label>
                                     <input 
                                         type="date" 
-                                        name="fecha_inicio" 
+                                        name="dateinitialcall" 
                                         className={styles.inputLight}
-                                        min={todayDate} 
-                                        value={formData.fecha_inicio} 
+                                        value={formData.dateinitialcall} 
                                         onChange={handleChange} 
                                         required 
                                     />
@@ -213,35 +264,36 @@ export const Calls: React.FC = () => {
                                     <label className={styles.labelLight}>Fecha Final:</label>
                                     <input 
                                         type="date" 
-                                        name="fecha_final" 
+                                        name="datefinalcall" 
                                         className={styles.inputLight}
-                                        min={todayDate} 
-                                        value={formData.fecha_final} 
-                                        onChange={handleChange} 
-                                        required 
-                                    />
-                                </div>
-
-                                <div className={styles.formGroup}>
-                                    <label className={styles.labelLight}>Fecha Límite (Entrega Docs):</label>
-                                    <input 
-                                        type="date" 
-                                        name="fecha_limite" 
-                                        className={styles.inputLight}
-                                        min={todayDate} 
-                                        value={formData.fecha_limite} 
+                                        value={formData.datefinalcall} 
                                         onChange={handleChange} 
                                         required 
                                     />
                                 </div>
                             </div>
 
+                            {editingCall && (
+                                <div className={styles.formGroup}>
+                                    <label className={styles.labelLight}>Estatus:</label>
+                                    <select 
+                                        name="activo" 
+                                        className={styles.inputLight}
+                                        value={formData.activo} 
+                                        onChange={handleChange}
+                                    >
+                                        <option value="1">ACTIVA</option>
+                                        <option value="0">INACTIVA</option>
+                                    </select>
+                                </div>
+                            )}
+
                             <div className={styles.modalFooter}>
                                 <button type="button" className={styles.btnCancelLight} onClick={() => setShowModal(false)}>
                                     Cancelar
                                 </button>
                                 <button type="submit" className={styles.btnGold}>
-                                    Guardar
+                                    {editingCall ? 'Actualizar' : 'Guardar'}
                                 </button>
                             </div>
                         </form>
