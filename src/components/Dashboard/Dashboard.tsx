@@ -45,7 +45,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
         try {
             if (token) {
-                await fetch('http://localhost:9000/api/logout', {
+                await fetch('http://10.106.1.49:6000/api/logout', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
