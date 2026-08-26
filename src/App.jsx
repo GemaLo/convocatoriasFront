@@ -1,10 +1,9 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Login } from './components/Login';
 import { Register } from './components/Register';
 import { Dashboard } from './components/Dashboard/Dashboard';
 
-// Guard para proteger el acceso al Dashboard
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('auth_token');
   if (!token) {
@@ -13,7 +12,6 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Guard para redirigir al Dashboard si el usuario ya está autenticado
 const PublicRoute = ({ children }) => {
   const token = localStorage.getItem('auth_token');
   if (token) {
@@ -53,7 +51,6 @@ function App() {
           } 
         />
 
-        {/* Redirección por defecto */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>

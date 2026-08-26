@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import styles from './Dashboard.module.css';
 import { Calls } from "../Calls";
+import { RegistersTable } from "../Registers/RegistersTable";// Asegúrate de importar tu componente de tabla
 
 interface TypeUser {
     idType: number;
@@ -28,6 +29,7 @@ interface DashboardProps {
 export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     const [user, setUser] = useState<UserData | null>(null);
     const [activeSection, setActiveSection] = useState('inicio');
+    const [activeCallName, setActiveCallName] = useState<string>('Consulta de Menores');
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user_info');
@@ -38,6 +40,29 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 console.error("Error al obtener información de sesión", e);
             }
         }
+
+        const fetchActiveCall = async () => {
+            const token = localStorage.getItem('auth_token');
+            try {
+                const response = await fetch(`${API_ENDPOINTS.MAIN}/convocatorias/vigente`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && (data.name || data.title)) {
+                        setActiveCallName(data.name || data.title);
+                    }
+                }
+            } catch (e) {
+                console.error("Error al obtener la convocatoria vigente", e);
+            }
+        };
+
+        fetchActiveCall();
     }, []);
 
     const handleLogout = async () => {
@@ -45,7 +70,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
         try {
             if (token) {
-                await fetch('http://10.106.1.49:6000/api/logout', {
+                await fetch(`${API_ENDPOINTS.MAIN}/logout`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -95,48 +120,52 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                             onClick={() => setActiveSection('inicio')}
                         >
                             <svg className={styles.navIcon} viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
                             </svg>
                             <span>Inicio</span>
                         </button>
 
+                        {/* ✅ CORREGIDO: onClick simplemente cambia la sección activa */}
                         <button
                             type="button"
                             className={`${styles.navItem} ${activeSection === 'familia' ? styles.active : ''}`}
                             onClick={() => setActiveSection('familia')}
                         >
                             <svg className={styles.navIcon} viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
                             </svg>
-                            <span>Consulta de Menores o Familia (Actual)</span>
+                            <span>{activeCallName}</span>
                         </button>
+
                         <button
                             type="button"
-                            className={`${styles.navItem} ${activeSection === 'familia' ? styles.active : ''}`}
-                            onClick={() => setActiveSection('familia')}
+                            className={`${styles.navItem} ${activeSection === 'historico' ? styles.active : ''}`}
+                            onClick={() => setActiveSection('historico')}
                         >
                             <svg className={styles.navIcon} viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
                             </svg>
                             <span>Consulta de histórico</span>
                         </button>
-                                                <button
+
+                        <button
                             type="button"
-                            className={`${styles.navItem} ${activeSection === 'familia' ? styles.active : ''}`}
-                            onClick={() => setActiveSection('familia')}
+                            className={`${styles.navItem} ${activeSection === 'reportes' ? styles.active : ''}`}
+                            onClick={() => setActiveSection('reportes')}
                         >
                             <svg className={styles.navIcon} viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
                             </svg>
                             <span>Reportes</span>
                         </button>
+
                         <button
                             type="button"
                             className={`${styles.navItem} ${activeSection === 'usuarios' ? styles.active : ''}`}
                             onClick={() => setActiveSection('usuarios')}
                         >
                             <svg className={styles.navIcon} viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                             </svg>
                             <span>Usuarios</span>
                         </button>
@@ -147,7 +176,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                             onClick={() => setActiveSection('convocatorias')}
                         >
                             <svg className={styles.navIcon} viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
                             </svg>
                             <span>Alta de Convocatorias</span>
                         </button>
@@ -157,7 +186,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                 <div className={styles.sidebarFooter}>
                     <button type="button" onClick={handleLogout} className={styles.logoutButton}>
                         <svg className={styles.navIcon} viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
+                            <path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z" />
                         </svg>
                         <span>Cerrar Sesión</span>
                     </button>
@@ -184,10 +213,27 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                         </div>
                     )}
 
+                    {/* ✅ CORREGIDO: Aquí es donde se muestra la tabla cuando la sección activa es 'familia' */}
                     {activeSection === 'familia' && (
                         <div className={styles.card}>
-                            <h2>Consulta de Menores o Familia</h2>
+                            <h2>{activeCallName}</h2>
                             <p>Módulo para la búsqueda, verificación y gestión del padrón de dependientes económicos y familiares registrados.</p>
+                            
+                            <RegistersTable />
+                        </div>
+                    )}
+
+                    {activeSection === 'historico' && (
+                        <div className={styles.card}>
+                            <h2>Consulta de Histórico</h2>
+                            <p>Módulo de consulta de registros históricos.</p>
+                        </div>
+                    )}
+
+                    {activeSection === 'reportes' && (
+                        <div className={styles.card}>
+                            <h2>Reportes</h2>
+                            <p>Generación y consulta de reportes.</p>
                         </div>
                     )}
 
@@ -198,12 +244,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                         </div>
                     )}
 
-
-{activeSection === 'convocatorias' && (
-    <div className={styles.card}>
-        <Calls />
-    </div>
-)}
+                    {activeSection === 'convocatorias' && (
+                        <div className={styles.card}>
+                            <Calls />
+                        </div>
+                    )}
                 </section>
             </main>
         </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { API_ENDPOINTS } from '../config/api';
+import Swal from 'sweetalert2';
 
 export interface MenorData {
   id: string;
@@ -61,8 +62,6 @@ export const useRegisterForm = () => {
       try {
         const res = await fetch(`${API_ENDPOINTS.MAIN}/calls/activa`);
         const responseData = await res.json();
-
-        console.log("Respuesta API Convocatoria:", responseData);
 
         if (!res.ok) {
           setConvocatoriaActiva(null);
@@ -157,7 +156,12 @@ export const useRegisterForm = () => {
 
   const eliminarMenor = (id: string) => {
     if (menores.length === 1) {
-      alert('Debe registrar al menos un menor.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Atención',
+        text: 'Debe registrar al menos un menor.',
+        confirmButtonColor: '#f8bb86'
+      });
       return;
     }
     const nuevaLista = menores.filter(m => m.id !== id);
@@ -244,28 +248,53 @@ export const useRegisterForm = () => {
     e.preventDefault();
 
     if (!convocatoriaActiva) {
-      alert('No se puede enviar el registro porque no hay una convocatoria activa.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Convocatoria inactiva',
+        text: 'No se puede enviar el registro porque no hay una convocatoria activa.',
+        confirmButtonColor: '#f8bb86'
+      });
       return;
     }
 
     for (let i = 0; i < menores.length; i++) {
       const m = menores[i];
       if (!m.fileCurp) {
-        alert(`El PDF de la CURP es obligatorio para el menor #${i + 1}.`);
+        Swal.fire({
+          icon: 'warning',
+          title: 'Documento faltante',
+          text: `El PDF de la CURP es obligatorio para el menor #${i + 1}.`,
+          confirmButtonColor: '#f8bb86'
+        });
         return;
       }
       const edadNum = parseInt(m.edad, 10);
       if (isNaN(edadNum) || edadNum > EDAD_MAXIMA_PERMITIDA) {
-        setWarning(`El menor #${i + 1} excede la edad límite de ${EDAD_MAXIMA_PERMITIDA} años.`);
+        Swal.fire({
+          icon: 'warning',
+          title: 'Edad no permitida',
+          text: `El menor #${i + 1} excede la edad límite de ${EDAD_MAXIMA_PERMITIDA} años.`,
+          confirmButtonColor: '#f8bb86'
+        });
         return;
       }
     }
+
+    Swal.fire({
+      title: 'Procesando registro...',
+      text: 'Guardando información y archivos',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
 
     setSubmitting(true);
 
     const payload = new FormData();
     payload.append('numEmpleado', formData.numeroEmpleado);
-    payload.append('email', `${formData.correoC}${formData.servidor}`);
+    payload.append('email', formData.correoC);
+    payload.append('servidor', formData.servidor);
     payload.append('phone', formData.telefono);
     payload.append('firstName', formData.nomPersona);
     payload.append('middleName', formData.appPersona);
@@ -293,12 +322,37 @@ export const useRegisterForm = () => {
 
       if (response.ok && result.success) {
         setConstanciaData(result.constancia);
+
+        Swal.fire({
+          icon: 'success',
+          title: '¡Registro Exitoso!',
+          html: `
+            <div style="text-align: left; margin-top: 10px;">
+              <p><b>Folio:</b> ${result.constancia.folio}</p>
+              <p><b>Candidato:</b> ${result.constancia.candidato}</p>
+              <p><b>No. Empleado:</b> ${result.constancia.numEmpleado}</p>
+              <p><b>Fecha:</b> ${result.constancia.fecha}</p>
+            </div>
+          `,
+          confirmButtonText: 'Aceptar',
+          confirmButtonColor: '#3085d6'
+        });
       } else {
-        alert(result.message || 'Error al guardar el registro.');
+        Swal.fire({
+          icon: 'warning',
+          title: 'Atención',
+          text: result.message || 'Error al guardar el registro.',
+          confirmButtonColor: '#f8bb86'
+        });
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error de conexión con el servidor.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error de servidor',
+        text: 'Ocurrió un error al conectarse con el servidor.',
+        confirmButtonColor: '#d33'
+      });
     } finally {
       setSubmitting(false);
     }
@@ -324,4 +378,4 @@ export const useRegisterForm = () => {
     consultarEmpleado,
     handleSubmit
   };
-};
+};  

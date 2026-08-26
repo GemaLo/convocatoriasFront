@@ -81,7 +81,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                     </div>
 
                     <h2 className={styles.title}>Iniciar Sesión</h2>
-                    <p className={styles.subtitle}>Sistema de Vales de Despensa</p>
+                    <p className={styles.subtitle}>Sistema de Registro de Convocatorias</p>
                 </div>
 
                 {error && (
