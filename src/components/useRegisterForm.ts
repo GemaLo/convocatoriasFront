@@ -296,6 +296,8 @@ export const useRegisterForm = () => {
     payload.append('email', formData.correoC);
     payload.append('servidor', formData.servidor);
     payload.append('phone', formData.telefono);
+    payload.append('curp', formData.curp);
+    payload.append('rfc', formData.rfc);
     payload.append('firstName', formData.nomPersona);
     payload.append('middleName', formData.appPersona);
     payload.append('lastName', formData.apmPersona);
