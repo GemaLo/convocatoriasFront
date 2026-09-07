@@ -24,6 +24,7 @@ function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/registro" element={<Register />} />
         <Route 
           path="/login" 
           element={
@@ -32,16 +33,6 @@ function App() {
             </PublicRoute>
           } 
         />
-
-        <Route 
-          path="/registro" 
-          element={
-            <PublicRoute>
-              <Register />
-            </PublicRoute>
-          } 
-        />
-
         <Route 
           path="/dashboard" 
           element={
@@ -50,8 +41,7 @@ function App() {
             </ProtectedRoute>
           } 
         />
-
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/registro" replace />} />
       </Routes>
     </Router>
   );

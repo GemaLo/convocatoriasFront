@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from './Dashboard.module.css';
 import { Calls } from "../Calls";
-import { RegistersTable } from "../Registers/RegistersTable";// Asegúrate de importar tu componente de tabla
+import { API_ENDPOINTS } from '../../config/api';
+import { RegistersTable } from "../Registers/RegistersTable";
+import { SearchRegisters } from "../Registers/searchRegisters"; // 👈 1. Importación del nuevo componente
 
 interface TypeUser {
     idType: number;
@@ -27,6 +30,7 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
+    const navigate = useNavigate();
     const [user, setUser] = useState<UserData | null>(null);
     const [activeSection, setActiveSection] = useState('inicio');
     const [activeCallName, setActiveCallName] = useState<string>('Consulta de Menores');
@@ -85,6 +89,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
             localStorage.removeItem('auth_token');
             localStorage.removeItem('user_info');
             if (onLogout) onLogout();
+            navigate('/login', { replace: true });
         }
     };
 
@@ -125,7 +130,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                             <span>Inicio</span>
                         </button>
 
-                        {/* ✅ CORREGIDO: onClick simplemente cambia la sección activa */}
                         <button
                             type="button"
                             className={`${styles.navItem} ${activeSection === 'familia' ? styles.active : ''}`}
@@ -213,7 +217,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                         </div>
                     )}
 
-                    {/* ✅ CORREGIDO: Aquí es donde se muestra la tabla cuando la sección activa es 'familia' */}
                     {activeSection === 'familia' && (
                         <div className={styles.card}>
                             <h2>{activeCallName}</h2>
@@ -230,10 +233,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
                         </div>
                     )}
 
+                    {/* 👈 2. Inserción del nuevo componente de reportes */}
                     {activeSection === 'reportes' && (
                         <div className={styles.card}>
                             <h2>Reportes</h2>
-                            <p>Generación y consulta de reportes.</p>
+                            <p>Generación y descarga de reportes con filtros avanzados.</p>
+                            
+                            <SearchRegisters />
                         </div>
                     )}
 

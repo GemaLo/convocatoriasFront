@@ -33,6 +33,7 @@ export const useRegisterForm = () => {
   const [convocatoriaActiva, setConvocatoriaActiva] = useState<Convocatoria | null>(null);
   const [checkingConvocatoria, setCheckingConvocatoria] = useState<boolean>(true);
 
+  // 1. Añadimos gender e idUnit al estado inicial
   const [formData, setFormData] = useState({
     numeroEmpleado: '',
     cargo: '',
@@ -41,6 +42,8 @@ export const useRegisterForm = () => {
     appPersona: '',
     apmPersona: '',
     curp: '',
+    gender: '', // 👈 Añadido
+    idUnit: '', // 👈 Añadido
     rfc: '',
     telefono: '',
     correoC: '',
@@ -226,6 +229,8 @@ export const useRegisterForm = () => {
           appPersona: data.apellido_paterno || data.appPersona || '',
           apmPersona: data.apellido_materno || data.apmPersona || '',
           curp: data.curp || '',
+          gender: data.gender || data.genero || prev.gender, // 👈 Setea género si viene de la API
+          idUnit: data.idUnit || data.idunit || prev.idUnit, // 👈 Setea idUnit si viene de la API
           rfc: data.rfc || '',
           telefono: data.telefono || '',
         }));
@@ -252,6 +257,17 @@ export const useRegisterForm = () => {
         icon: 'warning',
         title: 'Convocatoria inactiva',
         text: 'No se puede enviar el registro porque no hay una convocatoria activa.',
+        confirmButtonColor: '#f8bb86'
+      });
+      return;
+    }
+
+    // 2. Validación obligatoria de género antes de enviar para evitar error ORA-01400
+    if (!formData.gender) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Género requerido',
+        text: 'Por favor selecciona un género antes de enviar el formulario.',
         confirmButtonColor: '#f8bb86'
       });
       return;
@@ -301,6 +317,10 @@ export const useRegisterForm = () => {
     payload.append('firstName', formData.nomPersona);
     payload.append('middleName', formData.appPersona);
     payload.append('lastName', formData.apmPersona);
+
+    payload.append('gender', formData.gender);
+    payload.append('idUnit', formData.idUnit || '');
+
     payload.append('idCall', convocatoriaActiva.id.toString());
 
     menores.forEach((menor, index) => {
@@ -380,4 +400,4 @@ export const useRegisterForm = () => {
     consultarEmpleado,
     handleSubmit
   };
-};  
+};

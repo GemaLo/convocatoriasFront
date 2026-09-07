@@ -1,5 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRegisterForm } from './useRegisterForm';
+import { API_ENDPOINTS } from '../config/api';
+
+// Interfaz alineada con la respuesta de la API
+interface Unit {
+  idunit: string;
+  unitnumber: string;
+  unit: string;
+}
 
 export const Register: React.FC = () => {
   const {
@@ -22,6 +30,42 @@ export const Register: React.FC = () => {
     consultarEmpleado,
     handleSubmit
   } = useRegisterForm();
+
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [loadingUnits, setLoadingUnits] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchUnits = async () => {
+      try {
+        const res = await fetch(`${API_ENDPOINTS.MAIN}/units`, {
+          headers: {
+            'Accept': 'application/json',
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP Error: ${res.status} ${res.statusText}`);
+        }
+
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('La respuesta del servidor no es JSON.');
+        }
+
+        const response = await res.json();
+
+        if (response.status === 'success' && Array.isArray(response.data)) {
+          setUnits(response.data);
+        }
+      } catch (err) {
+        console.error('Error al cargar las direcciones desde la API:', err);
+      } finally {
+        setLoadingUnits(false);
+      }
+    };
+
+    fetchUnits();
+  }, []);
 
   if (checkingConvocatoria) {
     return (
@@ -203,6 +247,67 @@ export const Register: React.FC = () => {
                 maxLength={18}
                 required
               />
+            </div>
+
+            {/* --- RADIO BUTTONS GÉNERO (name="gender") --- */}
+            <div className="col-md-4">
+              <label className="form-label d-block">Género:</label>
+              <div className="d-flex align-items-center gap-4 pt-1">
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="radio"
+                    name="gender"
+                    id="generoFemenino"
+                    value="femenino"
+                    checked={formData.gender === 'femenino'}
+                    onChange={handleChange}
+                    required
+                  />
+                  <label className="form-check-label" htmlFor="generoFemenino">
+                    Femenino
+                  </label>
+                </div>
+                <div className="form-check">
+                  <input
+                    className="form-check-input"
+                    type="radio"
+                    name="gender"
+                    id="generoMasculino"
+                    value="masculino"
+                    checked={formData.gender === 'masculino'}
+                    onChange={handleChange}
+                    required
+                  />
+                  <label className="form-check-label" htmlFor="generoMasculino">
+                    Masculino
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* --- SELECT DIRECCIÓN / UNIDAD (name="idUnit") --- */}
+            <div className="col-md-8">
+              <label htmlFor="idUnit" className="form-label">
+                Dirección <span className="text-muted fw-normal">(opcional)</span>:
+              </label>
+              <select
+                id="idUnit"
+                className="form-select"
+                name="idUnit"
+                value={formData.idUnit || ''}
+                onChange={handleChange}
+                disabled={loadingUnits}
+              >
+                <option value="">
+                  {loadingUnits ? 'Cargando direcciones...' : '-- Selecciona una dirección --'}
+                </option>
+                {units.map((u: Unit) => (
+                  <option key={u.idunit} value={u.idunit}>
+                    {u.unitnumber ? `${u.unitnumber} - ${u.unit}` : u.unit}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
