@@ -29,21 +29,22 @@ const generateUUID = (): string => {
 
 export const useRegisterForm = () => {
   const EDAD_MAXIMA_PERMITIDA = 12;
+  const NIVELES_PERMITIDOS = ['GNO003', 'GNO004', 'GNB001', 'GNB002', 'GNB003'];
 
   const [convocatoriaActiva, setConvocatoriaActiva] = useState<Convocatoria | null>(null);
   const [checkingConvocatoria, setCheckingConvocatoria] = useState<boolean>(true);
 
-  // 1. Añadimos gender e idUnit al estado inicial
   const [formData, setFormData] = useState({
     numeroEmpleado: '',
     cargo: '',
+    nivel: '', 
     fechaIngreso: '',
     nomPersona: '',
     appPersona: '',
     apmPersona: '',
     curp: '',
-    gender: '', // 👈 Añadido
-    idUnit: '', // 👈 Añadido
+    gender: '',
+    idUnit: '',
     rfc: '',
     telefono: '',
     correoC: '',
@@ -216,6 +217,43 @@ export const useRegisterForm = () => {
 
       if (response.ok && result.success) {
         const data = result.data;
+        
+        const nivelTrabajador = String(data.nivel || data.level || data.puesto || '').trim().toUpperCase();
+        if (!NIVELES_PERMITIDOS.includes(nivelTrabajador)) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Nivel No Válido',
+            text: `El nivel "${nivelTrabajador || 'VACÍO'}" no está permitido. Los niveles aceptados son: ${NIVELES_PERMITIDOS.join(', ')}.`,
+            confirmButtonColor: '#d33'
+          });
+          setIsFetched(false);
+          setWarning('El nivel del empleado no es elegible.');
+          return;
+        }
+
+        const fechaIngresoRaw = data.ingreso || data.fecha_ingreso || data.fechaIngreso;
+        if (fechaIngresoRaw) {
+          const ingresoDate = new Date(fechaIngresoRaw);
+          if (!isNaN(ingresoDate.getTime())) {
+            const ahora = new Date();
+            const fechaMinima = new Date(ingresoDate);
+            fechaMinima.setMonth(fechaMinima.getMonth() + 6);
+            fechaMinima.setDate(fechaMinima.getDate() + 1);
+
+            if (ahora < fechaMinima) {
+              Swal.fire({
+                icon: 'error',
+                title: 'Antigüedad Insuficiente',
+                text: 'El trabajador no cumple con el periodo mínimo de antigüedad requerido (debe tener al menos 6 meses y 1 día a partir de su fecha de ingreso).',
+                confirmButtonColor: '#d33'
+              });
+              setIsFetched(false);
+              setWarning('Antigüedad insuficiente.');
+              return;
+            }
+          }
+        }
+
         const formatDateForInput = (rawDate: string | null | undefined): string => {
           if (!rawDate) return '';
           return rawDate.substring(0, 10);
@@ -224,13 +262,14 @@ export const useRegisterForm = () => {
         setFormData((prev) => ({
           ...prev,
           cargo: data.cargo || '',
-          fechaIngreso: formatDateForInput(data.ingreso),
+          nivel: nivelTrabajador,
+          fechaIngreso: formatDateForInput(fechaIngresoRaw),
           nomPersona: data.nombre || data.nomPersona || '',
           appPersona: data.apellido_paterno || data.appPersona || '',
           apmPersona: data.apellido_materno || data.apmPersona || '',
           curp: data.curp || '',
-          gender: data.gender || data.genero || prev.gender, // 👈 Setea género si viene de la API
-          idUnit: data.idUnit || data.idunit || prev.idUnit, // 👈 Setea idUnit si viene de la API
+          gender: data.gender || data.genero || prev.gender,
+          idUnit: data.idUnit || data.idunit || prev.idUnit,
           rfc: data.rfc || '',
           telefono: data.telefono || '',
         }));
@@ -262,13 +301,22 @@ export const useRegisterForm = () => {
       return;
     }
 
-    // 2. Validación obligatoria de género antes de enviar para evitar error ORA-01400
     if (!formData.gender) {
       Swal.fire({
         icon: 'warning',
         title: 'Género requerido',
         text: 'Por favor selecciona un género antes de enviar el formulario.',
         confirmButtonColor: '#f8bb86'
+      });
+      return;
+    }
+
+    if (!NIVELES_PERMITIDOS.includes(formData.nivel.trim().toUpperCase())) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Nivel No Válido',
+        text: `El nivel actual no está permitido. Niveles aceptados: ${NIVELES_PERMITIDOS.join(', ')}.`,
+        confirmButtonColor: '#d33'
       });
       return;
     }
@@ -317,10 +365,8 @@ export const useRegisterForm = () => {
     payload.append('firstName', formData.nomPersona);
     payload.append('middleName', formData.appPersona);
     payload.append('lastName', formData.apmPersona);
-
     payload.append('gender', formData.gender);
     payload.append('idUnit', formData.idUnit || '');
-
     payload.append('idCall', convocatoriaActiva.id.toString());
 
     menores.forEach((menor, index) => {

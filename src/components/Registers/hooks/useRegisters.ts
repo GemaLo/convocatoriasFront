@@ -25,6 +25,15 @@ export const useRegisters = () => {
         rfc: ''
     });
 
+    const [reportFilters, setReportFilters] = useState({
+        convocatoria: '',
+        no_direccion: '',
+        estado: '',
+        folio: '',
+        edad_menor: '',
+        formato: 'xlsx',
+    });
+
     const [observacionesMap, setObservacionesMap] = useState<Record<number, string>>({});
 
     useEffect(() => {
@@ -117,6 +126,52 @@ export const useRegisters = () => {
         setCurrentPage(1);
     };
 
+    const handleDownload = async (currentFilters: typeof reportFilters) => {
+        setLoading(true);
+
+        try {
+            const token = localStorage.getItem('auth_token');
+            const response = await fetch(`${API_ENDPOINTS.MAIN}/reports/download`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                },
+                body: JSON.stringify(currentFilters)
+            });
+
+            if (!response.ok) throw new Error('Error al generar el reporte en el servidor.');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `reporte_registros_${Date.now()}.${currentFilters.formato}`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+
+            Swal.fire({
+                icon: 'success',
+                title: '¡Reporte generado!',
+                text: 'La descarga se ha completado con éxito.',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        } catch (error) {
+            console.error(error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Ocurrió un problema al descargar el reporte.'
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleOpenPdf = async (pdfPath: string | null, title: string) => {
         if (!pdfPath) return;
 
@@ -157,8 +212,6 @@ export const useRegisters = () => {
         observaciones: string = ''
     ) => {
         const isRechazado = newStatusName.toLowerCase().includes('rechazado');
-
-        // Si el estado es rechazado y no hay motivo, se puede requerir por modal
         let finalObservaciones = observaciones;
 
         if (isRechazado && !finalObservaciones.trim()) {
@@ -216,7 +269,6 @@ export const useRegisters = () => {
             const data = await response.json();
             if (!response.ok) throw new Error(data.message || 'Error al actualizar el estatus');
 
-            // Actualizar localmente el mapa de observaciones
             setObservacionesMap(prev => ({ ...prev, [idRegister]: finalObservaciones }));
 
             const updateNinosList = (ninos: NinoData[]) =>
@@ -284,8 +336,11 @@ export const useRegisters = () => {
         filteredCandidatos,
         paginatedCandidatos,
         observacionesMap,
+        reportFilters,
+        setReportFilters,
         handleFilterChange,
         handleGlobalSearchChange,
+        handleDownload,
         handleOpenPdf,
         handleStatusChange,
         handleObservacionesChange

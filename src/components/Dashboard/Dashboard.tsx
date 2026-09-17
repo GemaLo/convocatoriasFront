@@ -48,7 +48,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         const fetchActiveCall = async () => {
             const token = localStorage.getItem('auth_token');
             try {
-                const response = await fetch(`${API_ENDPOINTS.MAIN}/convocatorias/vigente`, {
+                const response = await fetch(`${API_ENDPOINTS.MAIN}/calls/activa`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Accept': 'application/json'
